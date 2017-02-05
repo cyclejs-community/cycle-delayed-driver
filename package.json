@@ -1,0 +1,29 @@
+{
+  "name": "cycle-delayed-driver",
+  "version": "0.1.0",
+  "description": "Create a driver in the future as a response to a specific event",
+  "main": "lib/canvas-delayed-driver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyclejs-community/cycle-delayed-driver.git"
+  },
+  "keywords": [
+    "cycle",
+    "cycle.js",
+    "driver",
+    "delayed"
+  ],
+  "author": "Guy Rozen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cyclejs-community/cycle-delayed-driver/issues"
+  },
+  "homepage": "https://github.com/cyclejs-community/cycle-delayed-driver",
+  "dependencies": {
+    "@cycle/xstream-adapter": "^3.1.0",
+    "xstream": "^10.2.0"
+  }
+}
