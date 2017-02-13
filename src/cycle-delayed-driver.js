@@ -1,7 +1,5 @@
 import XStreamAdapter from '@cycle/xstream-adapter';
-import xs from 'xstream'
-
-export const innerDriverReady = Symbol('Inner driver ready');
+import xs from 'xstream';
 
 /*
  * Creates a listener for to the supplied stream and for each value attempts to create the inner driver.
