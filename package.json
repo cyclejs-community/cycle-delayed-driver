@@ -4,7 +4,7 @@
   "description": "Create a driver in the future as a response to a specific event",
   "main": "lib/canvas-delayed-driver.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babel-register"
   },
   "repository": {
     "type": "git",
@@ -25,5 +25,11 @@
   "dependencies": {
     "@cycle/xstream-adapter": "^3.1.0",
     "xstream": "^10.2.0"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.22.0",
+    "babel-register": "^6.22.0",
+    "chai": "^3.5.0",
+    "mocha": "^3.2.0"
   }
 }
