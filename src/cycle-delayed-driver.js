@@ -13,14 +13,14 @@ function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, 
 
       if (innerDriver) {
         sink$.removeListener(thisListener);
-        resolve(innerDriver(sink$));
+        outputResolve(innerDriver(sink$));
       }
     },
     error: e => { throw e; },
     complete: () => { outputReject(new Error('Stream terminated before inner driver was created')); }
   };
 
-  $sink.addListener(thisListener);
+  sink$.addListener(thisListener);
 }
 
 export function makeDelayedDriver(createDriverFunction) {
@@ -31,7 +31,7 @@ export function makeDelayedDriver(createDriverFunction) {
       }
     );
 
-    xs.fromPromise(innerSourcePromise).flatten();
+    return xs.fromPromise(innerSourcePromise).flatten();
   };
 
   driver.streamAdapter = XStreamAdapter;

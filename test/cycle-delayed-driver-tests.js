@@ -22,22 +22,32 @@ const pushDriverOnSix = function(thing) {
   return null;
 }
 
+// Causes a stream to evaluate, which in case of streams bulit upon rejected promises 
+// avoids the error associated with not handling the rejection.
+const drain = function(stream$) {
+  stream$.addListener({ next: () => null });
+}
+
 describe('Cycle Delayed Driver', () => {
-  before(() => {
+  beforeEach(() => {
     testArray = [];
     driverCreated = false;
   });
 
   it('creates the inner driver when the proper item is received', () => {
     let streamWithSix = xs.of(1, 2, 6);
-    makeDelayedDriver(streamWithSix);
+    let delayedDriver = makeDelayedDriver(pushDriverOnSix);
+
+    delayedDriver(streamWithSix);
 
     expect(driverCreated).to.be.true;
   });
 
   it('does not create the inner driver when the proper item is not received', () => {
     let streamWithoutSix = xs.of(1, 2, 'cat');
-    makeDelayedDriver(streamWithoutSix);
+    let delayedDriver = makeDelayedDriver(pushDriverOnSix);
+
+    drain(delayedDriver(streamWithoutSix));
 
     expect(driverCreated).to.be.false;
   });

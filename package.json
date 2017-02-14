@@ -4,7 +4,8 @@
   "description": "Create a driver in the future as a response to a specific event",
   "main": "lib/canvas-delayed-driver.js",
   "scripts": {
-    "test": "mocha --require babel-register"
+    "test": "mocha --require babel-register",
+    "debug-test": "mocha --require babel-register --inspect --debug-brk"
   },
   "repository": {
     "type": "git",
