@@ -1,7 +1,7 @@
 import { default as chai, expect } from 'chai';
 import { default as spies } from 'chai-spies';
 import xs from 'xstream';
-import { makeDelayedDriver } from '../src/cycle-delayed-driver';
+import { makeDelayedDriver, streamForDelayedDriver } from '../src/cycle-delayed-driver';
 
 chai.use(spies);
 
@@ -12,13 +12,17 @@ let delayedDriver = null;
 
 const arrayPushDriver = function(sink$) {
   sink$.addListener({
-    next: item => { testArray.push(item); },
+    next: item => { debugger; testArray.push(item); },
     error: e => { throw e; },
     complete: () => null
   });
+
+  debugger;
+  return xs.empty();
 }
 
 const pushDriverOnSix = function(thing) {
+  debugger;
   if (thing == 6) {
     driverCreated = true;
     return arrayPushDriver;
@@ -73,5 +77,47 @@ describe('Cycle Delayed Driver', () => {
     delayedDriver(inputStream);
 
     expect(creationSpy).to.have.been.called.exactly(3);
+  });
+});
+
+let explicitProducer = {
+  listener: null,
+  start: function(listener) {
+    debugger;
+    this.listener = listener;
+  },
+  stop: () => null,
+  produce: function(thing) {
+    this.listener.next(thing)
+  }
+};
+
+describe('Sink helper function', () => {
+//TODO: Remove this 'only' and all of the debugging. Use explicit producers for
+//all of the streams here to "time" things properly.
+  it.only('helps create a sink that will only feed the inner driver what it cares about', () => {
+    testArray = [];
+    delayedDriver = makeDelayedDriver(pushDriverOnSix);
+
+    let creationStream = xs.of(1, 2, 6, 'this', 'is', 'not', 'interesting');
+    let interestingStream = xs.of('I', 'am', 'busy', 'and', 'important');
+
+    let delayedDriverSourceProxy = xs.create(explicitProducer);
+
+    debugger;
+    //let mixedStream = streamForDelayedDriver(delayedDriverProxy, creationStream, interestingStream);
+    let mixedStream = xs.merge(creationStream.endWhen(delayedDriverSourceProxy), interestingStream);
+
+    delayedDriver(mixedStream).addListener({
+      next: (thing) => {
+        debugger; explicitProducer.produce(thing);
+      },
+      complete: () => {
+        debugger;
+        explicitProducer.produce(6);
+      }
+    });
+
+    expect(testArray).to.eql(['I', 'am', 'busy', 'and', 'important']);
   });
 });

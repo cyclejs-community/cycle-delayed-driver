@@ -37,3 +37,8 @@ export function makeDelayedDriver(createDriverFunction) {
   driver.streamAdapter = XStreamAdapter;
   return driver;
 }
+
+export function streamForDelayedDriver(driverSource$, forDelayedDriver$, forInnerDriver$) {
+  let examinedUntilCreation$ = forDelayedDriver$.endWhen(driverSource$);
+  return xs.merge(examinedUntilCreation$, forInnerDriver$);
+}
