@@ -80,43 +80,61 @@ describe('Cycle Delayed Driver', () => {
   });
 });
 
-let explicitProducer = {
-  listener: null,
-  start: function(listener) {
-    debugger;
-    this.listener = listener;
-  },
-  stop: () => null,
-  produce: function(thing) {
-    this.listener.next(thing)
-  }
+const makeExplicitProducer = function() {
+  return {
+    listener: null,
+    start: function(listener) {
+      this.listener = listener;
+    },
+    stop: () => null,
+    produce: function(thing) {
+      this.listener.next(thing);
+    },
+    produceMany: function(things) {
+      for (const thing of things) {
+        this.produce(thing);
+      }
+    }
+  };
 };
 
+const wireProxy = function(stream$, proxyProducer) {
+  stream$.addListener({
+    next: (thing) => {
+      proxyProducer.produce(thing);
+    },
+    complete: () => {
+      proxyProducer.produce(null);
+    }
+  });
+}
+
 describe('Sink helper function', () => {
-//TODO: Remove this 'only' and all of the debugging. Use explicit producers for
-//all of the streams here to "time" things properly.
+//TODO: Try doing something like in endWhen's specs
   it.only('helps create a sink that will only feed the inner driver what it cares about', () => {
     testArray = [];
     delayedDriver = makeDelayedDriver(pushDriverOnSix);
 
-    let creationStream = xs.of(1, 2, 6, 'this', 'is', 'not', 'interesting');
-    let interestingStream = xs.of('I', 'am', 'busy', 'and', 'important');
+    let creationProducer = makeExplicitProducer();
+    let innerProducer = makeExplicitProducer();
 
-    let delayedDriverSourceProxy = xs.create(explicitProducer);
+    let creationStream = xs.create(creationProducer);
+    let interestingStream = xs.create(innerProducer);
 
-    debugger;
+    let delayedDriverSourceProducer = makeExplicitProducer();
+    let delayedDriverSourceProxy = xs.create(delayedDriverSourceProducer);
+
     //let mixedStream = streamForDelayedDriver(delayedDriverProxy, creationStream, interestingStream);
     let mixedStream = xs.merge(creationStream.endWhen(delayedDriverSourceProxy), interestingStream);
 
-    delayedDriver(mixedStream).addListener({
-      next: (thing) => {
-        debugger; explicitProducer.produce(thing);
-      },
-      complete: () => {
-        debugger;
-        explicitProducer.produce(6);
-      }
-    });
+    // Hook up the delayed driver source proxy
+    wireProxy(delayedDriver(mixedStream), delayedDriverSourceProducer);
+
+    creationProducer.produceMany([1, 2, 6]);
+    creationProducer.produceMany(['this', 'is']);
+    innerProducer.produceMany(['I', 'am']);
+    creationProducer.produceMany(['not', 'important']);
+    innerProducer.produceMany(['busy', 'and', 'important']);
 
     expect(testArray).to.eql(['I', 'am', 'busy', 'and', 'important']);
   });
