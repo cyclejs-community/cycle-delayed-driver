@@ -29,12 +29,6 @@ const pushDriverOnSix = function(thing) {
   return null;
 }
 
-// Causes a stream to evaluate. Defined mainly for streams bulit upon rejected promises
-// to avoid the error associated with not handling the rejection.
-const drain = function(stream$) {
-  stream$.addListener({ next: () => null });
-}
-
 describe('Cycle Delayed Driver', () => {
   beforeEach(() => {
     testArray = [];
@@ -54,7 +48,7 @@ describe('Cycle Delayed Driver', () => {
   it('does not create the inner driver when the proper item is not received', () => {
     let streamWithoutSix = xs.of(1, 2, 'cat');
 
-    drain(delayedDriver(streamWithoutSix));
+    delayedDriver(streamWithoutSix);
 
     expect(driverCreated).to.be.false;
   });
@@ -77,21 +71,3 @@ describe('Cycle Delayed Driver', () => {
     expect(creationSpy).to.have.been.called.exactly(3);
   });
 });
-
-const makeExplicitProducer = function() {
-  return {
-    listener: null,
-    start: function(listener) {
-      this.listener = listener;
-    },
-    stop: () => null,
-    produce: function(thing) {
-      this.listener.next(thing);
-    },
-    produceMany: function(things) {
-      for (const thing of things) {
-        this.produce(thing);
-      }
-    }
-  };
-};

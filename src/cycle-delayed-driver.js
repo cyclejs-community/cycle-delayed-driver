@@ -1,6 +1,38 @@
 import xs from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 
+let innerDriverCreatedProducer = {
+  start: function(listener) {
+    this.listener = listener;
+    this.tryPublishResolution();
+  },
+  stop: function(listener) {
+    this.listener = null;
+  },
+  resolution: null,
+  tryPublishResolution: function() {
+    if (this.listener && this.resolution) {
+      this.listener.next(resolution);
+    }
+  },
+  creationSucceeded: function() {
+    this.resolution = {
+      created: true,
+      reason: null
+    };
+
+    this.tryPublishResolution();
+  },
+  creationFailed: function(reason) {
+    this.resolution = {
+      created: false,
+      reason: reason
+    };
+
+    this.tryPublishResolution();
+  },
+};
+
 /*
  * Creates a listener for to the supplied stream and for each value attempts to create the inner driver.
  * Once the inner driver is created, will use the supplied resolve method to resolve a promise with the inner
@@ -25,13 +57,20 @@ function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, 
 
 export function makeDelayedDriver(createDriverFunction) {
   let driver = function delayedDriver(sink$) {
+
+    let innerDriverCreated$ = xs.createWithMemory(innerDriverCreatedProducer);
+
     let innerSourcePromise = new Promise(
       function(resolve, reject) {
-        hookDriverCreationListener(sink$, createDriverFunction, resolve, reject);
-      }
-    );
+        hookDriverCreationListener(sink$, createDriverFunction, resolve, reject, innerDriverCreatedProducer);
+      }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason));
 
-    return adapt(xs.fromPromise(innerSourcePromise).flatten());
+    const source = {
+      innerStream: () => adapt(xs.fromPromise(innerSourcePromise).flatten()),
+      driverCreatedSteam: () => adapt(innerDriverCreated$)
+    }
+
+    return source;
   };
 
   return driver;
