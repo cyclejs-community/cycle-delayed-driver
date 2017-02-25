@@ -12,17 +12,15 @@ let delayedDriver = null;
 
 const arrayPushDriver = function(sink$) {
   sink$.addListener({
-    next: item => { debugger; testArray.push(item); },
+    next: item => { testArray.push(item); },
     error: e => { throw e; },
     complete: () => null
   });
 
-  debugger;
   return xs.empty();
 }
 
 const pushDriverOnSix = function(thing) {
-  debugger;
   if (thing == 6) {
     driverCreated = true;
     return arrayPushDriver;

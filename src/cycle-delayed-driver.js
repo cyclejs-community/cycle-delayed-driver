@@ -1,5 +1,5 @@
-import XStreamAdapter from '@cycle/xstream-adapter';
 import xs from 'xstream';
+import {adapt} from '@cycle/run/lib/adapt';
 
 /*
  * Creates a listener for to the supplied stream and for each value attempts to create the inner driver.
@@ -31,9 +31,8 @@ export function makeDelayedDriver(createDriverFunction) {
       }
     );
 
-    return xs.fromPromise(innerSourcePromise).flatten();
+    return adapt(xs.fromPromise(innerSourcePromise).flatten());
   };
 
-  driver.streamAdapter = XStreamAdapter;
   return driver;
 }
