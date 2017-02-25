@@ -10,6 +10,19 @@ let driverCreated = false;
 
 let delayedDriver = null;
 
+const expectStreamContents = function(s$, expectedValues, completionCallback) {
+  s$.addListener({
+    next: (item) => {
+      expect(item).to.eql(expectedValues.shift());
+    },
+    error: (err) => completionCallback(err),
+    complete: () => {
+      expect(expectedValues.length).to.eql(0);
+      completionCallback();
+    }
+  });
+}
+
 const arrayPushDriver = function(sink$) {
   sink$.addListener({
     next: item => { testArray.push(item); },
@@ -20,13 +33,19 @@ const arrayPushDriver = function(sink$) {
   return xs.empty();
 }
 
-const pushDriverOnSix = function(thing) {
-  if (thing == 6) {
-    driverCreated = true;
-    return arrayPushDriver;
-  }
+const oneToThreeDriver = function(sink$) {
+  return xs.of('1', '2', '3');
+}
 
-  return null;
+const driverOnSix = function(driver) {
+  return function(thing) {
+    if (thing == 6) {
+      driverCreated = true;
+      return driver;
+    }
+
+    return null;
+  }
 }
 
 describe('Cycle Delayed Driver', () => {
@@ -34,7 +53,7 @@ describe('Cycle Delayed Driver', () => {
     testArray = [];
     driverCreated = false;
 
-    delayedDriver = makeDelayedDriver(pushDriverOnSix);
+    delayedDriver = makeDelayedDriver(driverOnSix(arrayPushDriver));
   });
 
   it('creates the inner driver when the proper item is received', () => {
@@ -62,12 +81,32 @@ describe('Cycle Delayed Driver', () => {
   });
 
   it('stops trying to create the inner driver once it has been created', () => {
-    let creationSpy = chai.spy(pushDriverOnSix);
+    let creationSpy = chai.spy(driverOnSix(arrayPushDriver));
     let delayedDriver = makeDelayedDriver(creationSpy);
     let inputStream = xs.of(1, 2, 6, 'oh', 'yay', 'it', 'worked');
 
     delayedDriver(inputStream);
 
     expect(creationSpy).to.have.been.called.exactly(3);
+  });
+
+  describe('Inner driver source', () => {
+    it('returns the source of the inner driver if it is a stream', (done) => {
+      let delayedDriver = makeDelayedDriver(driverOnSix(oneToThreeDriver));
+      let inputStream = xs.of(1, 2, 6);
+
+      let expected = ['1', '2', '3'];
+      let innerSource = delayedDriver(inputStream).innerDriverSource();
+
+      expectStreamContents(innerSource, expected, done);
+    });
+
+    it('returns the source of the inner driver if it is complex');
+  });
+
+  describe('Inner driver creation stream', () => {
+    it('sends a positive resolution object when the driver is created');
+    it('sends a negative resolution object with a proper reason when the driver failed to create');
+    it('indicates that the driver was created even if no one was listening at the time');
   });
 });

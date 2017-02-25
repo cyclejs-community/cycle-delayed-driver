@@ -66,7 +66,7 @@ export function makeDelayedDriver(createDriverFunction) {
       }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason));
 
     const source = {
-      innerStream: () => adapt(xs.fromPromise(innerSourcePromise).flatten()),
+      innerDriverSource: () => adapt(xs.fromPromise(innerSourcePromise).flatten()),
       driverCreatedSteam: () => adapt(innerDriverCreated$)
     }
 
