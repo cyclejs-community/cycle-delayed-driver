@@ -1,49 +1,53 @@
 import xs from 'xstream';
 import {adapt} from '@cycle/run/lib/adapt';
 
-let innerDriverCreatedProducer = {
-  start: function(listener) {
-    this.listener = listener;
-    this.tryPublishResolution();
-  },
-  stop: function(listener) {
-    this.listener = null;
-  },
-  resolution: null,
-  tryPublishResolution: function() {
-    if (this.listener && this.resolution) {
-      this.listener.next(resolution);
+function makeInnerDriverCreatedProducer() {
+  return {
+    resolution: null,
+    start: function(listener) {
+      this.listener = listener;
+      this.tryPublishResolution();
+    },
+    stop: function(listener) {
+      this.listener = null;
+    },
+    tryPublishResolution: function() {
+      if (this.listener && this.resolution) {
+        this.listener.next(this.resolution);
+        this.listener.complete();
+      }
+    },
+    creationSucceeded: function() {
+      this.resolution = {
+        created: true,
+        reason: null
+      };
+
+      this.tryPublishResolution();
+    },
+    creationFailed: function(reason) {
+      this.resolution = {
+        created: false,
+        reason: reason
+      };
+
+      this.tryPublishResolution();
     }
-  },
-  creationSucceeded: function() {
-    this.resolution = {
-      created: true,
-      reason: null
-    };
-
-    this.tryPublishResolution();
-  },
-  creationFailed: function(reason) {
-    this.resolution = {
-      created: false,
-      reason: reason
-    };
-
-    this.tryPublishResolution();
-  },
-};
+  }
+}
 
 /*
  * Creates a listener for to the supplied stream and for each value attempts to create the inner driver.
  * Once the inner driver is created, will use the supplied resolve method to resolve a promise with the inner
  * driver's stream.
  */
-function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, outputReject) {
+function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, outputReject, driverCreatedProducer) {
   let thisListener = {
     next: sinkItem => {
       let innerDriver = createDriverFunction(sinkItem);
 
       if (innerDriver) {
+        driverCreatedProducer.creationSucceeded();
         sink$.removeListener(thisListener);
         outputResolve(innerDriver(sink$));
       }
@@ -58,15 +62,17 @@ function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, 
 export function makeDelayedDriver(createDriverFunction) {
   let driver = function delayedDriver(sink$) {
 
+    let innerDriverCreatedProducer = makeInnerDriverCreatedProducer();
     let innerDriverCreated$ = xs.createWithMemory(innerDriverCreatedProducer);
 
     let innerSourcePromise = new Promise(
       function(resolve, reject) {
         hookDriverCreationListener(sink$, createDriverFunction, resolve, reject, innerDriverCreatedProducer);
-      }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason));
+      }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason.message));
 
     const source = {
       innerDriverSource: () => adapt(xs.fromPromise(innerSourcePromise).flatten()),
+      innerDriverSourceAsComplex: () => adapt(xs.fromPromise(innerSourcePromise)),
       driverCreatedSteam: () => adapt(innerDriverCreated$)
     }
 

@@ -11,16 +11,19 @@ let driverCreated = false;
 let delayedDriver = null;
 
 const expectStreamContents = function(s$, expectedValues, completionCallback) {
-  s$.addListener({
+  let listener = {
     next: (item) => {
       expect(item).to.eql(expectedValues.shift());
     },
     error: (err) => completionCallback(err),
     complete: () => {
       expect(expectedValues.length).to.eql(0);
+      s$.removeListener(listener);
       completionCallback();
     }
-  });
+  };
+
+  s$.addListener(listener);
 }
 
 const arrayPushDriver = function(sink$) {
@@ -35,6 +38,15 @@ const arrayPushDriver = function(sink$) {
 
 const oneToThreeDriver = function(sink$) {
   return xs.of('1', '2', '3');
+}
+
+const complexSourceDriver = function(sink$) {
+  const source = {
+    positive: () => xs.of(1, 2, 3),
+    negative: () => xs.of(-1, -2, -3)
+  };
+
+  return source;
 }
 
 const driverOnSix = function(driver) {
@@ -91,7 +103,7 @@ describe('Cycle Delayed Driver', () => {
   });
 
   describe('Inner driver source', () => {
-    it('returns the source of the inner driver if it is a stream', (done) => {
+    it('returns the source of the inner driver as a stream', (done) => {
       let delayedDriver = makeDelayedDriver(driverOnSix(oneToThreeDriver));
       let inputStream = xs.of(1, 2, 6);
 
@@ -101,12 +113,41 @@ describe('Cycle Delayed Driver', () => {
       expectStreamContents(innerSource, expected, done);
     });
 
-    it('returns the source of the inner driver if it is complex');
+    it('can return a stream that emits the inner source object', (done) => {
+      let delayedDriver = makeDelayedDriver(driverOnSix(complexSourceDriver));
+      let inputStream = xs.of(1, 2, 6);
+
+      let expected = [1, 2, 3, -1, -2, -3];
+      let innerSource = delayedDriver(inputStream).innerDriverSourceAsComplex();
+
+      innerSource.addListener({
+        next: (complexSource) => {
+          let everything$ = xs.merge(complexSource.positive(), complexSource.negative());
+          expectStreamContents(everything$, expected, done);
+        },
+        error: (err) => done(err),
+        complete: () => null
+      });
+    });
   });
 
   describe('Inner driver creation stream', () => {
-    it('sends a positive resolution object when the driver is created');
-    it('sends a negative resolution object with a proper reason when the driver failed to create');
-    it('indicates that the driver was created even if no one was listening at the time');
+    it('sends a positive resolution object when the driver is created', (done) => {
+      let inputStream = xs.of(1, 2, 6);
+
+      let expected = [{created: true, reason: null}];
+      let created$ = delayedDriver(inputStream).driverCreatedSteam();
+
+      expectStreamContents(created$, expected, done);
+    });
+
+    it('sends a negative resolution object with a proper reason when the driver failed to create', (done) => {
+      let inputStream = xs.of(1, 2);
+
+      let expected = [{created: false, reason: 'Stream terminated before inner driver was created'}];
+      let created$ = delayedDriver(inputStream).driverCreatedSteam();
+
+      expectStreamContents(created$, expected, done);
+    });
   });
 });
