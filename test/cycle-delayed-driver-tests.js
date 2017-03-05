@@ -1,7 +1,7 @@
 import { default as chai, expect } from 'chai';
 import { default as spies } from 'chai-spies';
 import xs from 'xstream';
-import { makeDelayedDriver, streamForDelayedDriver } from '../src/cycle-delayed-driver';
+import { makeDelayedDriver } from '../src/cycle-delayed-driver';
 
 chai.use(spies);
 
