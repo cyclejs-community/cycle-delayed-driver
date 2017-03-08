@@ -41,7 +41,7 @@ function makeInnerDriverCreatedProducer() {
  * Once the inner driver is created, will use the supplied resolve method to resolve a promise with the inner
  * driver's stream.
  */
-function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, outputReject, driverCreatedProducer) {
+function hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, outputResolve, outputReject, driverCreatedProducer) {
   let thisListener = {
     next: sinkItem => {
       let innerDriver = createDriverFunction(sinkItem);
@@ -49,7 +49,12 @@ function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, 
       if (innerDriver) {
         driverCreatedProducer.creationSucceeded();
         sink$.removeListener(thisListener);
-        outputResolve(innerDriver(sink$));
+        if (translateSinkFunction) {
+          outputResolve(innerDriver(translateSinkFunction(sink$)));
+        }
+        else {
+          outputResolve(innerDriver(sink$));
+        }
       }
     },
     error: e => { throw e; },
@@ -59,7 +64,7 @@ function hookDriverCreationListener(sink$, createDriverFunction, outputResolve, 
   sink$.addListener(thisListener);
 }
 
-export function makeDelayedDriver(createDriverFunction) {
+export function makeDelayedDriver(createDriverFunction, translateSinkFunction = null) {
   let driver = function delayedDriver(sink$) {
 
     let innerDriverCreatedProducer = makeInnerDriverCreatedProducer();
@@ -67,7 +72,7 @@ export function makeDelayedDriver(createDriverFunction) {
 
     let innerSourcePromise = new Promise(
       function(resolve, reject) {
-        hookDriverCreationListener(sink$, createDriverFunction, resolve, reject, innerDriverCreatedProducer);
+        hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, resolve, reject, innerDriverCreatedProducer);
       }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason.message));
 
     const source = {

@@ -92,6 +92,15 @@ describe('Cycle Delayed Driver', () => {
     expect(testArray).to.eql(['oh', 'yay', 'it', 'worked']);
   });
 
+  it('applies the optional transformation method on the input stream once the inner driver is created', () => {
+    delayedDriver = makeDelayedDriver(driverOnSix(arrayPushDriver), (stream) => stream.map((x) => x * 2));
+    let inputStream = xs.of(1, 2, 6, 1, 2, 3);
+
+    delayedDriver(inputStream);
+
+    expect(testArray).to.eql([2, 4, 6]);
+  });
+
   it('stops trying to create the inner driver once it has been created', () => {
     let creationSpy = chai.spy(driverOnSix(arrayPushDriver));
     let delayedDriver = makeDelayedDriver(creationSpy);
