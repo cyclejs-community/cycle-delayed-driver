@@ -41,7 +41,7 @@ function makeInnerDriverCreatedProducer() {
  * Once the inner driver is created, will use the supplied resolve method to resolve a promise with the inner
  * driver's stream.
  */
-function hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, outputResolve, outputReject, driverCreatedProducer) {
+function hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, complex, driverSourceProxy, driverCreatedProducer) {
   let thisListener = {
     next: sinkItem => {
       let innerDriver = createDriverFunction(sinkItem);
@@ -49,35 +49,43 @@ function hookDriverCreationListener(sink$, createDriverFunction, translateSinkFu
       if (innerDriver) {
         driverCreatedProducer.creationSucceeded();
         sink$.removeListener(thisListener);
+
+        let innerSource = null;
+
         if (translateSinkFunction) {
-          outputResolve(innerDriver(translateSinkFunction(sink$)));
+          innerSource = innerDriver(translateSinkFunction(sink$));
         }
         else {
-          outputResolve(innerDriver(sink$));
+          innerSource = innerDriver(sink$);
+        }
+
+        if (complex == true) {
+          driverSourceProxy.imitate(xs.of(innerSource));
+        }
+        else {
+          driverSourceProxy.imitate(innerSource);
         }
       }
     },
     error: e => { throw e; },
-    complete: () => { outputReject(new Error('Stream terminated before inner driver was created')); }
+    complete: () => { driverCreatedProducer.creationFailed('Stream terminated before inner driver was created'); }
   };
 
   sink$.addListener(thisListener);
 }
 
-export function makeDelayedDriver(createDriverFunction, translateSinkFunction = null) {
+export function makeDelayedDriver(createDriverFunction, complex = false, translateSinkFunction = null) {
   let driver = function delayedDriver(sink$) {
 
     let innerDriverCreatedProducer = makeInnerDriverCreatedProducer();
-    let innerDriverCreated$ = xs.createWithMemory(innerDriverCreatedProducer);
+    let innerDriverCreated$ = xs.create(innerDriverCreatedProducer);
 
-    let innerSourcePromise = new Promise(
-      function(resolve, reject) {
-        hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, resolve, reject, innerDriverCreatedProducer);
-      }).catch((reason) => innerDriverCreatedProducer.creationFailed(reason.message));
+    let innerDriverSourceProxy = xs.create();
+
+    hookDriverCreationListener(sink$, createDriverFunction, translateSinkFunction, complex, innerDriverSourceProxy, innerDriverCreatedProducer);
 
     const source = {
-      innerDriverSource: () => adapt(xs.fromPromise(innerSourcePromise).flatten()),
-      innerDriverSourceAsComplex: () => adapt(xs.fromPromise(innerSourcePromise)),
+      innerDriverSource: () => adapt(innerDriverSourceProxy),
       driverCreatedSteam: () => adapt(innerDriverCreated$)
     }
 

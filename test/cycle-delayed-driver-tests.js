@@ -93,7 +93,7 @@ describe('Cycle Delayed Driver', () => {
   });
 
   it('applies the optional transformation method on the input stream once the inner driver is created', () => {
-    delayedDriver = makeDelayedDriver(driverOnSix(arrayPushDriver), (stream) => stream.map((x) => x * 2));
+    delayedDriver = makeDelayedDriver(driverOnSix(arrayPushDriver), false, (stream) => stream.map((x) => x * 2));
     let inputStream = xs.of(1, 2, 6, 1, 2, 3);
 
     delayedDriver(inputStream);
@@ -123,11 +123,11 @@ describe('Cycle Delayed Driver', () => {
     });
 
     it('can return a stream that emits the inner source object', (done) => {
-      let delayedDriver = makeDelayedDriver(driverOnSix(complexSourceDriver));
+      let delayedDriver = makeDelayedDriver(driverOnSix(complexSourceDriver), true);
       let inputStream = xs.of(1, 2, 6);
 
       let expected = [1, 2, 3, -1, -2, -3];
-      let innerSource = delayedDriver(inputStream).innerDriverSourceAsComplex();
+      let innerSource = delayedDriver(inputStream).innerDriverSource();
 
       innerSource.addListener({
         next: (complexSource) => {

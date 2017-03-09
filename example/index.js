@@ -26,7 +26,7 @@ function main({DOM, delayedCanvas}) {
           div([
             h1('Here is a canvas:'),
             canvas('#target', {style: {border: "1px solid black"}})])),
-    delayedCanvas: xsConcat(targetCanvas$, canvas$).debug()
+    delayedCanvas: xsConcat(targetCanvas$, canvas$)
   };
 }
 
