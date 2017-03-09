@@ -1,5 +1,6 @@
 import { run } from '@cycle/run';
 import xs from 'xstream';
+import xsConcat from 'xstream/extra/concat';
 import { canvas, div, h1, makeDOMDriver } from '@cycle/dom';
 import { text, makeCanvasDriver } from 'cycle-canvas';
 import { makeDelayedDriver } from '../src/cycle-delayed-driver';
@@ -11,8 +12,8 @@ function canvasDriverOnTarget(elements) {
   return null;
 }
 
-function main(sources) {
-  const targetCanvas$ = sources['DOM'].select('canvas#target').elements();
+function main({DOM, delayedCanvas}) {
+  const targetCanvas$ = DOM.select('canvas#target').elements().endWhen(delayedCanvas.driverCreatedSteam());
   const canvas$ = xs.of(text({
     x: 100,
     y: 100,
@@ -25,7 +26,7 @@ function main(sources) {
           div([
             h1('Here is a canvas:'),
             canvas('#target', {style: {border: "1px solid black"}})])),
-    delayedCanvas: targetCanvas$
+    delayedCanvas: xsConcat(targetCanvas$, canvas$).debug()
   };
 }
 
