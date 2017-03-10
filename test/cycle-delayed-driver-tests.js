@@ -15,7 +15,7 @@ const expectStreamContents = function(s$, expectedValues, completionCallback) {
     next: (item) => {
       expect(item).to.eql(expectedValues.shift());
     },
-    error: (err) => completionCallback(err),
+    error: (err) => {completionCallback(err)},
     complete: () => {
       expect(expectedValues.length).to.eql(0);
       s$.removeListener(listener);
@@ -28,8 +28,8 @@ const expectStreamContents = function(s$, expectedValues, completionCallback) {
 
 const arrayPushDriver = function(sink$) {
   sink$.addListener({
-    next: item => { testArray.push(item); },
-    error: e => { throw e; },
+    next: item => {testArray.push(item)},
+    error: e => {throw e;},
     complete: () => null
   });
 
@@ -90,15 +90,6 @@ describe('Cycle Delayed Driver', () => {
     delayedDriver(inputStream);
 
     expect(testArray).to.eql(['oh', 'yay', 'it', 'worked']);
-  });
-
-  it('applies the optional transformation method on the input stream once the inner driver is created', () => {
-    delayedDriver = makeDelayedDriver(driverOnSix(arrayPushDriver), false, (stream) => stream.map((x) => x * 2));
-    let inputStream = xs.of(1, 2, 6, 1, 2, 3);
-
-    delayedDriver(inputStream);
-
-    expect(testArray).to.eql([2, 4, 6]);
   });
 
   it('stops trying to create the inner driver once it has been created', () => {
