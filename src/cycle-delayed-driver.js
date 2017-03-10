@@ -74,11 +74,10 @@ function wireInnerDriverSource(innerSource, complex, driverSourceProducer) {
     driverSourceProducer.complete();
   }
   else {
-    debugger;
     innerSource.addListener({
-      next: (item) => {debugger; driverSourceProducer.send(item)},
+      next: (item) => {driverSourceProducer.send(item)},
       error: (e) => {throw e;},
-      complete: () => {debugger; driverSourceProducer.complete()}
+      complete: () => {driverSourceProducer.complete()}
     });
   }
 }
