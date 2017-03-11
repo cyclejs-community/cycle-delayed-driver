@@ -37,6 +37,6 @@
     "chai-spies": "^0.7.1",
     "cycle-canvas": "^0.4.0",
     "mocha": "^3.2.0",
-    "xstream": "^10.2.0"
+    "xstream": "^10.3.0"
   }
 }
