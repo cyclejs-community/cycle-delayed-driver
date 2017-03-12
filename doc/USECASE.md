@@ -7,8 +7,8 @@ You might try something like this:
 ```javascript
 import {run} from '@cycle/run';
 import xs from 'xstream';
-import { canvas, div, h1, makeDOMDriver } from '@cycle/dom';
-import { text, makeCanvasDriver } from 'cycle-canvas';
+import {canvas, div, h1, makeDOMDriver} from '@cycle/dom';
+import {text, makeCanvasDriver} from 'cycle-canvas';
 
 function main({DOM, canvasDriver}) {
   const dom$ = xs.of(
@@ -49,13 +49,13 @@ So what's going on here? When we created the canvas driver and attached it to `c
 Let us see how we can use the delayed driver to solve the problem we've just described. Here's a revised version of the previous example. This time, we're utilizing the delayed driver to create the canvas driver as a response to the canvas element's creation:
 
 ```javascript
-import { run } from '@cycle/run';
+import {run} from '@cycle/run';
 import xs from 'xstream';
 import xsConcat from 'xstream/extra/concat';
 import xsDelay from 'xstream/extra/delay';
-import { canvas, div, h1, makeDOMDriver } from '@cycle/dom';
-import { text, makeCanvasDriver } from 'cycle-canvas';
-import { makeDelayedDriver } from 'cycle-delayed-driver';
+import {canvas, div, h1, makeDOMDriver} from '@cycle/dom';
+import {text, makeCanvasDriver} from 'cycle-canvas';
+import {makeDelayedDriver} from 'cycle-delayed-driver';
 
 function canvasDriverOnTarget(elements) {
   if (Array.isArray(elements) && elements.some(e => e.id == 'target')) {
