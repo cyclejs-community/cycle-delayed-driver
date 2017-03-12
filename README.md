@@ -43,6 +43,7 @@ have a look [here](doc/USECASE.md).
 
 ##How does this work
 The delayed driver operates in the following manner:
+
 1. Once created, it will pass all values it receives to the method you specified
    when creating the driver (this will be `loggerOnFive` in the example above).
    We will refer to this method as the "inner driver creation method".
