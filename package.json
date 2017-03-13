@@ -1,6 +1,6 @@
 {
   "name": "cycle-delayed-driver",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Create a driver in the future as a response to a specific event",
   "main": "lib/canvas-delayed-driver.js",
   "scripts": {
