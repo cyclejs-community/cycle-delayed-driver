@@ -1,7 +1,7 @@
-import { default as chai, expect } from 'chai';
-import { default as spies } from 'chai-spies';
+import {default as chai, expect} from 'chai';
+import {default as spies} from 'chai-spies';
 import xs from 'xstream';
-import { makeDelayedDriver } from '../src/cycle-delayed-driver';
+import {makeDelayedDriver} from '../src/cycle-delayed-driver';
 
 chai.use(spies);
 
@@ -29,7 +29,7 @@ const expectStreamContents = function(s$, expectedValues, completionCallback) {
 const arrayPushDriver = function(sink$) {
   sink$.addListener({
     next: item => {testArray.push(item)},
-    error: e => {throw e;},
+    error: e => {throw e},
     complete: () => null
   });
 
@@ -85,9 +85,9 @@ describe('Cycle Delayed Driver', () => {
   });
 
   it('passes the stream to the inner driver once it is created', () => {
-    let inputStream = xs.of(1, 2, 6, 'oh', 'yay', 'it', 'worked');
+    let input$ = xs.of(1, 2, 6, 'oh', 'yay', 'it', 'worked');
 
-    delayedDriver(inputStream);
+    delayedDriver(input$);
 
     expect(testArray).to.eql(['oh', 'yay', 'it', 'worked']);
   });
@@ -95,9 +95,9 @@ describe('Cycle Delayed Driver', () => {
   it('stops trying to create the inner driver once it has been created', () => {
     let creationSpy = chai.spy(driverOnSix(arrayPushDriver));
     let delayedDriver = makeDelayedDriver(creationSpy);
-    let inputStream = xs.of(1, 2, 6, 'oh', 'yay', 'it', 'worked');
+    let input$ = xs.of(1, 2, 6, 'oh', 'yay', 'it', 'worked');
 
-    delayedDriver(inputStream);
+    delayedDriver(input$);
 
     expect(creationSpy).to.have.been.called.exactly(3);
   });
@@ -105,20 +105,20 @@ describe('Cycle Delayed Driver', () => {
   describe('Inner driver source', () => {
     it('returns the source of the inner driver as a stream', (done) => {
       let delayedDriver = makeDelayedDriver(driverOnSix(oneToThreeDriver));
-      let inputStream = xs.of(1, 2, 6);
+      let input$ = xs.of(1, 2, 6);
 
       let expected = ['1', '2', '3'];
-      let innerSource = delayedDriver(inputStream).innerDriverSource();
+      let innerSource = delayedDriver(input$).innerDriverSource();
 
       expectStreamContents(innerSource, expected, done);
     });
 
     it('can return a stream that emits the inner source object', (done) => {
       let delayedDriver = makeDelayedDriver(driverOnSix(complexSourceDriver), true);
-      let inputStream = xs.of(1, 2, 6);
+      let input$ = xs.of(1, 2, 6);
 
       let expected = [1, 2, 3, -1, -2, -3];
-      let innerSource = delayedDriver(inputStream).innerDriverSource();
+      let innerSource = delayedDriver(input$).innerDriverSource();
 
       innerSource.addListener({
         next: (complexSource) => {
@@ -133,19 +133,19 @@ describe('Cycle Delayed Driver', () => {
 
   describe('Inner driver creation stream', () => {
     it('sends a positive resolution object when the driver is created', (done) => {
-      let inputStream = xs.of(1, 2, 6);
+      let input$ = xs.of(1, 2, 6);
 
       let expected = [{created: true, reason: null}];
-      let created$ = delayedDriver(inputStream).driverCreatedSteam();
+      let created$ = delayedDriver(input$).driverCreatedSteam();
 
       expectStreamContents(created$, expected, done);
     });
 
     it('sends a negative resolution object with a proper reason when the driver failed to create', (done) => {
-      let inputStream = xs.of(1, 2);
+      let input$ = xs.of(1, 2);
 
       let expected = [{created: false, reason: 'Stream terminated before inner driver was created'}];
-      let created$ = delayedDriver(inputStream).driverCreatedSteam();
+      let created$ = delayedDriver(input$).driverCreatedSteam();
 
       expectStreamContents(created$, expected, done);
     });

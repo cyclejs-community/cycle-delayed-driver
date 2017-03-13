@@ -1,10 +1,10 @@
-import { run } from '@cycle/run';
+import {run} from '@cycle/run';
 import xs from 'xstream';
 import xsConcat from 'xstream/extra/concat';
 import xsDelay from 'xstream/extra/delay';
-import { canvas, div, h1, makeDOMDriver } from '@cycle/dom';
-import { text, makeCanvasDriver } from 'cycle-canvas';
-import { makeDelayedDriver } from '../src/cycle-delayed-driver';
+import {canvas, div, h1, makeDOMDriver} from '@cycle/dom';
+import {text, makeCanvasDriver} from 'cycle-canvas';
+import {makeDelayedDriver} from '../src/cycle-delayed-driver';
 
 function canvasDriverOnTarget(elements) {
   if (Array.isArray(elements) && elements.some(e => e.id == 'target')) {
