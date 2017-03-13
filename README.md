@@ -60,3 +60,32 @@ In the event that the inner driver was not created and the stream fed into the d
 
 ## API
 
+### `makeDelayedDriver(innerDriverCreationMethod, complex = false)`
+
+A factory for the delayed driver function.
+
+Receives an `innerDriverCreationMethod` which it will use to try and create a driver in response to incoming values. `complex` is used to indicate whether the source of the driver that might be created by `innerDriverCreationMethod` is complex or not.
+
+The input to this driver is any stream at all, the values of which are fed to `innerDriverCreationMethod` as they arrive. Once the inner driver is successfully created this stream will be forwarded to the inner driver. The output of this driver is a set of two streams:
+
+* `driverCreatedStream()` can be used to get a stream which will emit a single event and then end. The single value is an object of the following form:
+
+  ```javascript
+  {
+    created: false,
+    reason: 'Something terrible has happened!'
+  }
+  ```
+
+  `created` indicates whether the inner driver was created successfully, and `reason` details what failed in case of a failure.
+
+* `innerDriverSource()` gives access to the source of the inner driver once it has been created. If `complex` was false when the delayed driver was created, this will yield a simple stream that mimics the source of the inner driver. If `complex` was true, however, this will be a stream that emits the inner driver's source itself and then complete.
+
+#### Arguments:
+
+* `innerDriverCreationMethod: function(item)` a function that is expected to receive a single argument and either return null or a new driver function.
+* `complex: boolean` optional argument that is false by default. False indicates the driver created by the delayed driver emits a stream. True indicates it emits a complex object.
+
+#### Returns:
+
+`function(sink$)` the delayed driver function. Expects a stream of values which may cause an internal driver to be created.
