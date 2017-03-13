@@ -1,4 +1,4 @@
-# cycle-delayed-driver [![Build Status](https://travis-ci.org/cyclejs-community/cycle-delayed-driver.svg?branch=master)](https://travis-ci.org/cyclejs-community/cycle-delayed-driver)
+# cycle-delayed-driver [![Build Status](https://travis-ci.org/cyclejs-community/cycle-delayed-driver.svg?branch=master)](https://travis-ci.org/cyclejs-community/cycle-delayed-driver)[![npm version](https://badge.fury.io/js/cycle-delayed-driver.svg)](https://badge.fury.io/js/cycle-delayed-driver)
 Create a driver in the future as a response to a specific event.
 
 ##Installation
