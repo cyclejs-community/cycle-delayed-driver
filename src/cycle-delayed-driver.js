@@ -76,17 +76,12 @@ function wireInnerDriverSource(innerSource, complex, driverSourceProducer) {
   else {
     innerSource.addListener({
       next: (item) => {driverSourceProducer.send(item)},
-      error: (e) => {throw e;},
+      error: (e) => {throw e},
       complete: () => {driverSourceProducer.complete()}
     });
   }
 }
 
-/*
- * Creates a listener for to the supplied stream and for each value attempts to create the inner driver.
- * Once the inner driver is created, will use the supplied resolve method to resolve a promise with the inner
- * driver's stream.
- */
 function hookDriverCreationListener(sink$, createDriverFunction, complex, driverSourceProducer, driverCreatedProducer) {
   let sinkForwardProducer = makeExplicitProducer();
 
@@ -114,7 +109,7 @@ function hookDriverCreationListener(sink$, createDriverFunction, complex, driver
     listen: tryToCreateDriver,
     finish: () => {driverCreatedProducer.creationFailed('Stream terminated before inner driver was created')},
     next: function(item) {this.listen(item)},
-    error: e => {throw e;},
+    error: e => {throw e},
     complete: function() {this.finish()}
   };
 
