@@ -1,4 +1,4 @@
-# Usacase
+# Usecase
 
 This driver is meant to assist in cases where you cannot properly hook up all of your drivers in your application's [run function](https://cycle.js.org/getting-started.html#getting-started-coding).
 A very simple example is the case where your application's UI is managed by Cycle's DOM driver and contains a canvas which the users will interact
