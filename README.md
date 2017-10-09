@@ -1,10 +1,10 @@
 # cycle-delayed-driver [![Build Status](https://travis-ci.org/cyclejs-community/cycle-delayed-driver.svg?branch=master)](https://travis-ci.org/cyclejs-community/cycle-delayed-driver) [![npm version](https://badge.fury.io/js/cycle-delayed-driver.svg)](https://badge.fury.io/js/cycle-delayed-driver)
 Create a driver in the future as a response to a specific event.
 
-##Installation
+## Installation
     npm install cycle-delayed-driver --save
 
-##Example
+## Example
 ```javascript
 import {run} from '@cycle/run';
 import xs from 'xstream';
@@ -35,13 +35,13 @@ run(main, {
 
 The above will cause all numbers starting at 6 to be incrementally logged to the console each second.
 
-##But why?
+## But why?
 Achieving the above is rather trivial without using the delayed driver, which is
 more useful in cases where you can only set up the drivers that you need in
 response to something else happening. For an in-depth and practicle example,
 have a look [here](doc/USECASE.md).
 
-##How does this work
+## How does this work
 The delayed driver operates in the following manner:
 
 1. Once created, it will pass all values it receives to the method you specified
