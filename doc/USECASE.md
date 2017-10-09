@@ -1,4 +1,5 @@
-#Usacase
+# Usacase
+
 This driver is meant to assist in cases where you cannot properly hook up all of your drivers in your application's [run function](https://cycle.js.org/getting-started.html#getting-started-coding).
 A very simple example is the case where your application's UI is managed by Cycle's DOM driver and contains a canvas which the users will interact
 with in fascinating ways. What if you wanted to attach a [canvas driver](https://github.com/cyclejs-community/cycle-canvas) to that canvas?
@@ -45,7 +46,8 @@ What you'd end up with is this:
 
 So what's going on here? When we created the canvas driver and attached it to `canvas#target`, the desired canvas simply did not exist yet (it will exist almost immediately afterwards, once the DOM driver acts on `dom$`). What the canvas driver does in this case is create its own canvas and place it at the end of the document.
 
-##Example
+## Example
+
 Let us see how we can use the delayed driver to solve the problem we've just described. Here's a revised version of the previous example. This time, we're utilizing the delayed driver to create the canvas driver as a response to the canvas element's creation:
 
 ```javascript
