@@ -2,7 +2,7 @@
   "name": "cycle-delayed-driver",
   "version": "1.0.0",
   "description": "Create a driver in the future as a response to a specific event",
-  "main": "lib/canvas-delayed-driver.js",
+  "main": "lib/cycle-delayed-driver.js",
   "scripts": {
     "example": "budo example/index.js:bundle.js -d example --live -- -t babelify",
     "debug-test": "mocha --require babel-register --inspect --debug-brk",
